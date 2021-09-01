@@ -374,7 +374,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                                   error:
                                                       'Comment cant be less than 7 characteres',
                                                   ctx: context);
-                                            } else {
+                                            } {
+                                              User? user = _auth.currentUser;
+                                              final _uid = user!.uid;
+                                              final DocumentSnapshot userDoc =
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('users')
+                                                      .doc(_uid)
+                                                      .get();
                                               final _generatedId = Uuid().v4();
                                               await FirebaseFirestore.instance
                                                   .collection('tasks')
@@ -383,15 +391,27 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                                 'taskComments':
                                                     FieldValue.arrayUnion([
                                                   {
-                                                    'userId': widget.uploadedBy,
+                                                    'userId': _uid,
                                                     'commentId': _generatedId,
-                                                    'name': authorName,
-                                                    'userImageUrl':
-                                                        userImageUrl,
+                                                    'name': userDoc.get('name'),
+                                                    'userImageUrl': userDoc
+                                                        .get('userImage'),
                                                     'commentBody':
                                                         _commentController.text,
                                                     'time': Timestamp.now(),
                                                   }
+                                                ]),
+                                              });
+                                              await Fluttertoast.showToast(
+                                                  msg:
+                                                      "Your comment has been added",
+                                                  toastLength:
+                                                      Toast.LENGTH_LONG,
+                                                  // gravity: ToastGravity.,
+                                                  backgroundColor: Colors.grey,
+                                                  fontSize: 18.0);
+                                              _commentController.clear();
+                                            }
                                                 ]),
                                               });
                                               await Fluttertoast.showToast(
